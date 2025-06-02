@@ -22,15 +22,32 @@ io.on("connection", (socket) => {
       activePairs.set(socket.id, partner.id);
       activePairs.set(partner.id, socket.id);
 
-      socket.emit("matched", true); // initiator
-      partner.emit("matched", false); // receiver
+      socket.emit("matched", true);
+      partner.emit("matched", false);
 
-      // Relay messages between the two
-      socket.on("offer", (data) => partner.emit("offer", data));
-      partner.on("answer", (data) => socket.emit("answer", data));
+      socket.on("offer", (data) => {
+        if (io.sockets.sockets.get(partner.id)) {
+          partner.emit("offer", data);
+        }
+      });
 
-      socket.on("ice-candidate", (data) => partner.emit("ice-candidate", data));
-      partner.on("ice-candidate", (data) => socket.emit("ice-candidate", data));
+      partner.on("answer", (data) => {
+        if (io.sockets.sockets.get(socket.id)) {
+          socket.emit("answer", data);
+        }
+      });
+
+      socket.on("ice-candidate", (data) => {
+        if (io.sockets.sockets.get(partner.id)) {
+          partner.emit("ice-candidate", data);
+        }
+      });
+
+      partner.on("ice-candidate", (data) => {
+        if (io.sockets.sockets.get(socket.id)) {
+          socket.emit("ice-candidate", data);
+        }
+      });
     } else {
       waitingUsers.push(socket);
     }
@@ -39,10 +56,8 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Disconnected:", socket.id);
 
-    // Remove from waiting list if they were waiting
     waitingUsers = waitingUsers.filter((s) => s.id !== socket.id);
 
-    // Remove from active pair and disconnect partner
     const partnerId = activePairs.get(socket.id);
     if (partnerId) {
       const partner = io.sockets.sockets.get(partnerId);
