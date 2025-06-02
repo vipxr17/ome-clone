@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ome Clone</title>
+  <title>Ome Clone+</title>
   <style>
     :root {
       --bg-dark: #181818;
-      --bg-light: #f2f2f2;
+      --bg-light: #f0f0f0;
       --text-dark: #ffffff;
       --text-light: #000000;
     }
@@ -18,32 +18,28 @@
       padding: 0;
       height: 100vh;
       display: flex;
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .left {
+      flex: 3;
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.3s, color 0.3s;
-      background-color: var(--bg-dark);
-      color: var(--text-dark);
     }
 
     .title {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: bold;
       margin-bottom: 10px;
     }
 
-    .mode-toggle {
-      margin-bottom: 30px;
-      font-size: 14px;
-      cursor: pointer;
-      opacity: 0.8;
-    }
-
-    .videos {
+    .video-section {
       display: flex;
       gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
     }
 
     .video-wrapper {
@@ -53,22 +49,27 @@
     }
 
     video {
-      width: 350px;
-      height: 260px;
+      width: 320px;
+      height: 240px;
       background: black;
       border-radius: 12px;
     }
 
     .name-tag {
-      margin-top: 8px;
+      margin-top: 6px;
       font-size: 14px;
-      opacity: 0.75;
+      opacity: 0.8;
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
     }
 
     .btn {
-      margin-top: 25px;
-      padding: 12px 28px;
-      font-size: 16px;
+      padding: 10px 20px;
+      font-size: 14px;
       font-weight: 600;
       border: none;
       border-radius: 8px;
@@ -82,45 +83,91 @@
       background: linear-gradient(45deg, #ff416c, #ff4b2b);
     }
 
-    .light {
-      background-color: var(--bg-light);
-      color: var(--text-light);
+    .right {
+      flex: 1;
+      border-left: 1px solid #444;
+      background-color: #101010;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .chat-box {
+      padding: 10px;
+      height: 80%;
+      overflow-y: auto;
+      color: white;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #333;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+    }
+
+    .chat-input button {
+      margin-left: 8px;
+      padding: 8px 12px;
+      font-weight: 600;
+      background-color: #00c6ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .username-input {
+      padding: 10px;
+      text-align: center;
+    }
+
+    .username-input input {
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: none;
     }
   </style>
 </head>
 <body>
-  <div class="title">Ome Clone</div>
-  <div class="mode-toggle" id="toggleMode">🌙 Dark Mode</div>
-
-  <div class="videos">
-    <div class="video-wrapper">
-      <video id="localVideo" autoplay muted></video>
-      <div class="name-tag">You</div>
+  <div class="left">
+    <div class="title">Ome Clone+</div>
+    <div class="video-section">
+      <div class="video-wrapper">
+        <video id="localVideo" autoplay muted></video>
+        <div class="name-tag">You</div>
+      </div>
+      <div class="video-wrapper">
+        <video id="remoteVideo" autoplay></video>
+        <div class="name-tag">Stranger</div>
+      </div>
     </div>
-    <div class="video-wrapper">
-      <video id="remoteVideo" autoplay></video>
-      <div class="name-tag">Stranger</div>
+    <div class="controls">
+      <button id="muteBtn" class="btn">Mute</button>
+      <button id="next" class="btn">Next</button>
+      <button id="kickBtn" class="btn">Kick</button>
+      <button id="reportBtn" class="btn">Report</button>
     </div>
   </div>
 
-  <button id="next" class="btn">Next</button>
-
-  <script>
-    const toggle = document.getElementById("toggleMode");
-    const body = document.body;
-    let dark = true;
-
-    toggle.onclick = () => {
-      dark = !dark;
-      if (dark) {
-        body.classList.remove("light");
-        toggle.textContent = "🌙 Dark Mode";
-      } else {
-        body.classList.add("light");
-        toggle.textContent = "☀️ Light Mode";
-      }
-    };
-  </script>
+  <div class="right">
+    <div class="username-input">
+      <input type="text" id="username" placeholder="Your username" />
+    </div>
+    <div class="chat-box" id="chatBox"></div>
+    <div class="chat-input">
+      <input type="text" id="chatMsg" placeholder="Type a message..." />
+      <button id="sendMsg">Send</button>
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="main.js"></script>
