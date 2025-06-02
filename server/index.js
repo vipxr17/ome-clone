@@ -7,34 +7,50 @@ const app = express();
 const server = http.createServer(app);
 const io = socket(server);
 
-// Serve frontend
 app.use(express.static(path.join(__dirname, "../client")));
 
-let waitingSocket = null;
+let waitingUsers = [];
+let activePairs = new Map();
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
   socket.on("ready", () => {
-    if (waitingSocket) {
-      waitingSocket.emit("matched", true);
-      socket.emit("matched", false);
+    if (waitingUsers.length > 0) {
+      const partner = waitingUsers.shift();
 
-      waitingSocket.on("offer", (data) => socket.emit("offer", data));
-      socket.on("answer", (data) => waitingSocket.emit("answer", data));
+      activePairs.set(socket.id, partner.id);
+      activePairs.set(partner.id, socket.id);
 
-      waitingSocket.on("ice-candidate", (data) => socket.emit("ice-candidate", data));
-      socket.on("ice-candidate", (data) => waitingSocket.emit("ice-candidate", data));
+      socket.emit("matched", true); // initiator
+      partner.emit("matched", false); // receiver
 
-      waitingSocket = null;
+      // Relay messages between the two
+      socket.on("offer", (data) => partner.emit("offer", data));
+      partner.on("answer", (data) => socket.emit("answer", data));
+
+      socket.on("ice-candidate", (data) => partner.emit("ice-candidate", data));
+      partner.on("ice-candidate", (data) => socket.emit("ice-candidate", data));
     } else {
-      waitingSocket = socket;
+      waitingUsers.push(socket);
     }
   });
 
   socket.on("disconnect", () => {
-    if (waitingSocket === socket) {
-      waitingSocket = null;
+    console.log("Disconnected:", socket.id);
+
+    // Remove from waiting list if they were waiting
+    waitingUsers = waitingUsers.filter((s) => s.id !== socket.id);
+
+    // Remove from active pair and disconnect partner
+    const partnerId = activePairs.get(socket.id);
+    if (partnerId) {
+      const partner = io.sockets.sockets.get(partnerId);
+      if (partner) {
+        partner.disconnect(true);
+      }
+      activePairs.delete(socket.id);
+      activePairs.delete(partnerId);
     }
   });
 });
