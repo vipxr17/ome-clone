@@ -1,4 +1,5 @@
 const socket = io();
+console.log("Socket connected");
 let localStream;
 let peerConnection;
 const config = {
@@ -42,6 +43,7 @@ function createPeerConnection(isInitiator) {
 }
 
 socket.on("matched", (isInitiator) => {
+  console.log("Matched! You are initiator:", isInitiator);
   createPeerConnection(isInitiator);
 });
 
