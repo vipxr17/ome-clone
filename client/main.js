@@ -1,6 +1,7 @@
 const socket = io();
 let localStream;
 let peerConnection;
+let isMuted = false;
 
 const config = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
@@ -9,18 +10,19 @@ const config = {
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
 const nextBtn = document.getElementById("next");
+const muteBtn = document.getElementById("muteBtn");
+const kickBtn = document.getElementById("kickBtn");
+const reportBtn = document.getElementById("reportBtn");
+const usernameInput = document.getElementById("username");
+const chatBox = document.getElementById("chatBox");
+const chatInput = document.getElementById("chatMsg");
+const sendBtn = document.getElementById("sendMsg");
 
-console.log("Socket connected");
-
-// Step 1: Get camera and wait until it's fully ready
 navigator.mediaDevices.getUserMedia({ video: true, audio: true })
   .then(stream => {
     localStream = stream;
     localVideo.srcObject = stream;
-    console.log("Local stream ready");
-
     localVideo.onloadedmetadata = () => {
-      console.log("Local video metadata loaded");
       socket.emit("ready");
     };
   })
@@ -28,7 +30,6 @@ navigator.mediaDevices.getUserMedia({ video: true, audio: true })
     console.error("Error accessing camera/mic:", error);
   });
 
-// Step 2: Create Peer Connection
 function createPeerConnection(isInitiator) {
   peerConnection = new RTCPeerConnection(config);
 
@@ -37,13 +38,11 @@ function createPeerConnection(isInitiator) {
   });
 
   peerConnection.ontrack = (event) => {
-    console.log("Remote stream received");
     remoteVideo.srcObject = event.streams[0];
   };
 
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
-      console.log("Sending ICE candidate");
       socket.emit("ice-candidate", event.candidate);
     }
   };
@@ -56,14 +55,11 @@ function createPeerConnection(isInitiator) {
   }
 }
 
-// Step 3: Handle match and WebRTC signaling
 socket.on("matched", (isInitiator) => {
-  console.log("Matched! You are initiator:", isInitiator);
   createPeerConnection(isInitiator);
 });
 
 socket.on("offer", offer => {
-  console.log("Offer received");
   peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
   peerConnection.createAnswer().then(answer => {
     peerConnection.setLocalDescription(answer);
@@ -72,16 +68,48 @@ socket.on("offer", offer => {
 });
 
 socket.on("answer", answer => {
-  console.log("Answer received");
   peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
 });
 
 socket.on("ice-candidate", candidate => {
-  console.log("Received ICE candidate");
   peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
 });
 
-// Step 4: Skip button resets everything
 nextBtn.onclick = () => {
   location.reload();
+};
+
+muteBtn.onclick = () => {
+  isMuted = !isMuted;
+  localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+  muteBtn.textContent = isMuted ? "Unmute" : "Mute";
+};
+
+sendBtn.onclick = () => {
+  const message = chatInput.value.trim();
+  const name = usernameInput.value.trim() || "You";
+  if (message) {
+    socket.emit("chat", { message, name });
+    appendMessage(`🧍 ${name}: ${message}`);
+    chatInput.value = "";
+  }
+};
+
+socket.on("chat", ({ message, name }) => {
+  appendMessage(`👤 ${name}: ${message}`);
+});
+
+function appendMessage(msg) {
+  const div = document.createElement("div");
+  div.textContent = msg;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+kickBtn.onclick = () => {
+  alert("Kick function not implemented yet");
+};
+
+reportBtn.onclick = () => {
+  alert("Report function not implemented yet");
 };
