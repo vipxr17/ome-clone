@@ -18,12 +18,19 @@ const chatBox = document.getElementById("chatBox");
 const chatInput = document.getElementById("chatMsg");
 const sendBtn = document.getElementById("sendMsg");
 
+// Update page title and heading to 'Zapped ⚡'
+document.title = "Zapped ⚡";
+const titleDiv = document.querySelector(".title");
+if (titleDiv) {
+  titleDiv.innerHTML = "<span style='color:yellow;font-weight:bold;'>⚡ Zapped</span>";
+}
+
 navigator.mediaDevices.getUserMedia({ video: true, audio: true })
   .then(stream => {
     localStream = stream;
     localVideo.srcObject = stream;
     localVideo.onloadedmetadata = () => {
-      socket.emit("ready");
+      socket.emit("ready", usernameInput.value.trim() || "Guest");
     };
   })
   .catch(error => {
@@ -87,7 +94,7 @@ muteBtn.onclick = () => {
 
 sendBtn.onclick = () => {
   const message = chatInput.value.trim();
-  const name = usernameInput.value.trim() || "You";
+  const name = usernameInput.value.trim() || "Guest";
   if (message) {
     socket.emit("chat", { message, name });
     appendMessage(`🧍 ${name}: ${message}`);
