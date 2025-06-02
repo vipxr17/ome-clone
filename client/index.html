@@ -1,22 +1,126 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>OmeTV Clone</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ome Clone</title>
   <style>
+    :root {
+      --bg-dark: #181818;
+      --bg-light: #f2f2f2;
+      --text-dark: #ffffff;
+      --text-light: #000000;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s, color 0.3s;
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .mode-toggle {
+      margin-bottom: 30px;
+      font-size: 14px;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+
+    .videos {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .video-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
     video {
-      width: 300px;
-      height: 200px;
-      margin: 10px;
+      width: 350px;
+      height: 260px;
       background: black;
+      border-radius: 12px;
+    }
+
+    .name-tag {
+      margin-top: 8px;
+      font-size: 14px;
+      opacity: 0.75;
+    }
+
+    .btn {
+      margin-top: 25px;
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    }
+
+    .light {
+      background-color: var(--bg-light);
+      color: var(--text-light);
     }
   </style>
 </head>
 <body>
-  <h1>Random Video Chat</h1>
-  <video id="localVideo" autoplay muted></video>
-  <video id="remoteVideo" autoplay></video>
-  <br>
-  <button id="next">Next</button>
+  <div class="title">Ome Clone</div>
+  <div class="mode-toggle" id="toggleMode">🌙 Dark Mode</div>
+
+  <div class="videos">
+    <div class="video-wrapper">
+      <video id="localVideo" autoplay muted></video>
+      <div class="name-tag">You</div>
+    </div>
+    <div class="video-wrapper">
+      <video id="remoteVideo" autoplay></video>
+      <div class="name-tag">Stranger</div>
+    </div>
+  </div>
+
+  <button id="next" class="btn">Next</button>
+
+  <script>
+    const toggle = document.getElementById("toggleMode");
+    const body = document.body;
+    let dark = true;
+
+    toggle.onclick = () => {
+      dark = !dark;
+      if (dark) {
+        body.classList.remove("light");
+        toggle.textContent = "🌙 Dark Mode";
+      } else {
+        body.classList.add("light");
+        toggle.textContent = "☀️ Light Mode";
+      }
+    };
+  </script>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="main.js"></script>
